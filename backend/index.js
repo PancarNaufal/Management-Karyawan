@@ -2,13 +2,13 @@ const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
 const authRoutes = require('./routes/authRoute')
+const roleRoutes = require('./routes/roleRoute')
 dotenv.config()
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 
-// SQL Server connection dengan SQL Authentication (bukan Windows Auth)
 const sql = require('mssql')
 
 const sqlConfig = {
@@ -20,7 +20,7 @@ const sqlConfig = {
   options: {
     encrypt: true,
     trustServerCertificate: process.env.db_trust_server_certificate === 'true'
-    // Hapus instanceName karena sudah pakai port 1433
+
   }
 }
 
@@ -46,6 +46,7 @@ app.get('/db/ping', async (req, res) => {
 })
 
 app.use('/auth', authRoutes)
+app.use('/roles', roleRoutes)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, '0.0.0.0', () => {

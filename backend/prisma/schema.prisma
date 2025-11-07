@@ -17,11 +17,15 @@ datasource db {
 
 // --- MODEL UNTUK MANAJEMEN USER & ROLE ---
 
-// Model untuk Role (Admin, Cashier, Employee)
+// Model untuk Role (Admin, Cashier, Employee, dll - bisa custom)
 model Role {
-  id    Int    @id @default(autoincrement())
-  nama  String @unique // "Admin", "Cashier", "Employee"
-  users User[]
+  id         Int      @id @default(autoincrement())
+  nama       String   @unique // "Admin", "Cashier", "Employee", dst
+  gajiPokok  Float    @default(0) // Gaji pokok untuk role ini
+  deskripsi  String?  // Deskripsi role (opsional)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  users      User[]
 }
 
 model User {

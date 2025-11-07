@@ -66,7 +66,7 @@ exports.login = async (req, res) => {
     const passwordCocok = await bcrypt.compare(password, user.password);
 
     if (!passwordCocok) {
-      return res.status(401).json({ message: 'Password salah.' }); // 401 Unauthorized
+      return res.status(401).json({ message: 'Password salah.' });
     }
 
  

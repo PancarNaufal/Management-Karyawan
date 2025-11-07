@@ -56,6 +56,9 @@ npm run db:push     # Sync schema ke DB (dev)
 npm run db:migrate  # Buat migration (production)
 npm run db:generate # Generate Prisma Client
 
+# Test koneksi DB (troubleshooting)
+node test-db.js
+
 # Frontend
 cd frontend
 flutter run         # Jalankan app
@@ -67,10 +70,23 @@ flutter build apk   # Build APK
 File: `backend/.env`
 
 ```properties
+db_auth=sql
+db_host=localhost
+db_name=db_restoran
+db_user=prisma_user
+db_password=Prisma!2025
+db_trust_server_certificate=true
+PORT=3000
+
 DATABASE_URL="sqlserver://localhost:1433;database=db_restoran;user=prisma_user;password=Prisma!2025;encrypt=true;trustServerCertificate=true"
 SHADOW_DATABASE_URL=""
-PORT=3000
+JWT_SECRET="kata_mamah_aku_sigma08953214371987"
 ```
+
+**Catatan:**
+- Gunakan SQL Authentication (bukan Windows Auth)
+- Port 1433 (jangan tambahkan `instanceName` ke config)
+- `SHADOW_DATABASE_URL=""` untuk disable shadow DB (dev lokal)
 
 ## 🗄️ Database Schema
 
@@ -89,6 +105,11 @@ Lihat detail: [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma)
 1. **Field `shift` hanya valid:** `"pagi"`, `"siang"`, `"malam"` (lihat [`backend/docs/SHIFT.md`](backend/docs/SHIFT.md))
 2. **Password harus di-hash** (gunakan bcrypt)
 3. **Update dokumentasi** setiap perubahan API (wajib!)
+4. **SQL Server config:**
+   - Pakai SQL Authentication (user/password)
+   - Port 1433 (JANGAN tambahkan `instanceName` ke sqlConfig)
+   - Pastikan Mixed Auth mode aktif
+5. **Prisma Client:** Jalankan `npx prisma generate` setelah clone atau update schema
 
 ## 🤝 Contributing
 

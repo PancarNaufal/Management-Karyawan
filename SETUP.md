@@ -91,7 +91,6 @@ File `.env` sudah ada, pastikan isinya:
 ```properties
 db_auth=sql
 db_host=localhost
-db_instance=SQLEXPRESS
 db_name=db_restoran
 db_user=prisma_user
 db_password=Prisma!2025
@@ -100,13 +99,17 @@ PORT=3000
 
 DATABASE_URL="sqlserver://localhost:1433;database=db_restoran;user=prisma_user;password=Prisma!2025;encrypt=true;trustServerCertificate=true"
 SHADOW_DATABASE_URL=""
+JWT_SECRET="kata_mamah_aku_sigma08953214371987"
 ```
+
+**PENTING:** Jangan tambahkan `instanceName` ke config karena sudah pakai port 1433 default.
 
 #### Sinkronkan Database Schema
 
 **Opsi A — Pakai `db push` (untuk dev lokal, lebih cepat):**
 ```powershell
 npx prisma db push
+npx prisma generate
 ```
 
 **Opsi B — Pakai `migrate` (untuk production/team, buat migration history):**
@@ -114,16 +117,28 @@ npx prisma db push
 npx prisma migrate dev --name init
 ```
 
-#### Generate Prisma Client
-
+**WAJIB:** Setelah clone atau update schema, jalankan:
 ```powershell
 npx prisma generate
 ```
 
 #### Test Koneksi Database
 
+Gunakan script test sebelum run server:
 ```powershell
-node index.js
+node test-db.js
+```
+
+Expected output:
+```
+✅ Connected to SQL Server
+✅ Query result: { db: 'db_restoran', server: 'NAMA-PC' }
+```
+
+#### Jalankan Server
+
+```powershell
+npm run dev
 ```
 
 Buka browser: http://localhost:3000/db/ping
@@ -133,8 +148,8 @@ Response sukses:
 {
   "ok": true,
   "db": "db_restoran",
-  "server": "NAMA-PC\\SQLEXPRESS",
-  "instance": "SQLEXPRESS"
+  "server": "NAMA-PC",
+  "instance": null
 }
 ```
 
@@ -187,19 +202,30 @@ flutter run
 
 ### Error: "Can't reach database server"
 - Pastikan SQL Server service running: `services.msc` → SQL Server (SQLEXPRESS)
-- Pastikan TCP/IP enabled di SQL Server Configuration Manager
-- Test koneksi: `sqlcmd -S localhost,1433 -U prisma_user -P "Prisma!2025"`
+- Pastikan TCP/IP enabled di SQL Server Configuration Manager dan set port 1433
+- Test koneksi: `sqlcmd -S localhost,1433 -U prisma_user -P "Prisma!2025" -Q "SELECT DB_NAME()"`
 
 ### Error: "Authentication failed"
 - Jalankan ulang `backend\setup-sql-login.sql`
 - Pastikan Mixed Authentication mode aktif
+- Restart SQL Server service
 
 ### Error: "Shadow database permission denied"
 - Jalankan `backend\grant-create-db.sql`
 - Atau pakai `npx prisma db push` (tidak butuh shadow DB)
 
+### Error: "Failed to connect to localhost\SQLEXPRESS in 15000ms"
+- **Penyebab:** Konflik antara `port: 1433` dan `instanceName: SQLEXPRESS`
+- **Solusi:** Hapus `instanceName` dari sqlConfig di `index.js` (sudah diperbaiki)
+- Pastikan SQL Server listen di port 1433 (bukan dynamic port)
+
+### Error: "@prisma/client did not initialize yet"
+- Jalankan: `npx prisma generate`
+- Pastikan import dari `@prisma/client` (bukan custom path)
+- Restart nodemon atau server
+
 ### Error: "Connection refused" dari Flutter
-- Pastikan backend running (`node index.js`)
+- Pastikan backend running (`npm run dev`)
 - Untuk emulator, pakai `http://10.0.2.2:3000`
 - Untuk device fisik, pakai IP PC (contoh: `http://192.168.1.10:3000`)
 - Cek firewall allow port 3000
