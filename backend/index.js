@@ -1,32 +1,34 @@
 const express = require('express')
 const cors = require('cors')
 const dotenv = require('dotenv')
+const authRoutes = require('./routes/authRoute')
 dotenv.config()
-
-// Pakai driver Windows Auth
-const sql = require('mssql/msnodesqlv8')
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 
-// Pool tunggal
+// SQL Server connection dengan SQL Authentication (bukan Windows Auth)
+const sql = require('mssql')
+
+const sqlConfig = {
+  server: process.env.db_host || 'localhost',
+  port: 1433,
+  user: process.env.db_user,
+  password: process.env.db_password,
+  database: process.env.db_name,
+  options: {
+    encrypt: true,
+    trustServerCertificate: process.env.db_trust_server_certificate === 'true'
+    // Hapus instanceName karena sudah pakai port 1433
+  }
+}
+
 let pool
 async function getPool() {
-  if (pool && pool.connected) return pool
-  const host = process.env.db_host || 'localhost'
-  const inst = process.env.db_instance ? `\\${process.env.db_instance}` : ''
-  const db   = process.env.db_name
-  const trust = (process.env.db_trust_server_certificate || 'true') === 'true'
-
-  const connStr =
-    `Server=${host}${inst};` +
-    `Database=${db};` +
-    `Trusted_Connection=Yes;` +
-    `Encrypt=${trust ? 'No' : 'Yes'};` +
-    `Driver={ODBC Driver 17 for SQL Server};`
-
-  pool = await sql.connect(connStr)
+  if (!pool || !pool.connected) {
+    pool = await sql.connect(sqlConfig)
+  }
   return pool
 }
 
@@ -38,11 +40,15 @@ app.get('/db/ping', async (req, res) => {
     )
     res.json({ ok: true, ...r.recordset[0] })
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message })
+    console.error('DB Ping Error:', e)
+    res.status(500).json({ ok: false, error: e.message || String(e) })
   }
 })
+
+app.use('/auth', authRoutes)
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`API running at http://localhost:${PORT}`)
 })
+
