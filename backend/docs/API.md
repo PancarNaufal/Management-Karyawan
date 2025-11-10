@@ -4,6 +4,54 @@ Base URL: `http://localhost:3000`
 
 Catatan: Tambahkan endpoint baru di dokumen ini setiap menambah route di `backend/index.js` atau file route lain.
 
+## 📚 Dokumentasi Lengkap
+
+### Quick Links
+- **[Laporan, Gaji & Absensi API](./LAPORAN-GAJI-ABSENSI.md)** - Dokumentasi lengkap untuk:
+  - 📊 Laporan Pemasukkan (Admin)
+  - 💰 Manajemen Gaji (Admin)
+  - ⏰ Sistem Absensi (All Users)
+
+---
+
+## 📋 Endpoint Overview
+
+### Authentication
+- `POST /auth/register` - Registrasi user baru
+- `POST /auth/login` - Login user
+
+### Role Management (Admin Only)
+- `GET /roles` - List semua roles
+- `GET /roles/:id` - Get role by ID
+- `POST /roles` - Buat role baru (Admin only)
+- `PUT /roles/:id` - Update role (Admin only)
+- `DELETE /roles/:id` - Hapus role (Admin only)
+
+### Pemasukkan (Cashier Only untuk Input)
+- `GET /pemasukkan/show` - Lihat semua pemasukkan (Authenticated)
+- `POST /pemasukkan/insert` - Input pemasukkan (Cashier only)
+
+### Laporan (Admin Only) 📊
+- `GET /laporan/total` - Total pemasukkan dengan filter
+- `GET /laporan/harian` - Laporan harian (daily summary)
+- `GET /laporan/detail` - Detail semua pemasukkan (dengan pagination)
+
+### Gaji (Admin Only) 💰
+- `POST /gaji/set-gaji-perjam` - Set gaji per jam user
+- `POST /gaji/hitung-dari-gaji-pokok` - Hitung gaji per jam dari gaji pokok
+- `GET /gaji/user/:userId` - Lihat gaji user tertentu
+- `GET /gaji/all` - Lihat gaji semua user
+
+### Absensi ⏰
+- `POST /absensi/clock-in` - Absen masuk (All users)
+- `POST /absensi/clock-out` - Absen keluar (All users)
+- `GET /absensi/today` - Lihat absensi hari ini (All users)
+- `GET /absensi/my` - Riwayat absensi sendiri (All users)
+- `GET /absensi/all` - Lihat semua absensi (Admin only)
+
+### Health Check
+- `GET /db/ping` - Health check koneksi database
+
 ---
 
 ## 🔐 Authentication

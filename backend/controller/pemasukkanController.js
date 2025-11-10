@@ -38,42 +38,55 @@ exports.showPemasukan = async (req, res) => {
 
 exports.createPemasukkan = async (req, res) => {
   
-  const { userId, jumlahPemasukkan, shift } = req.body;
+  const { jumlahPemasukkan, shift } = req.body;
 
-  if (userId === undefined || jumlahPemasukkan === undefined || !shift) {
+  // Cashier otomatis dari user yang login (dari middleware)
+  const userId = req.user.userId;
+
+  if (jumlahPemasukkan === undefined || !shift) {
     return res.status(400).json({
-      message:
-        'Data tidak lengkap. Pastikan userId, jumlahPemasukkan, dan shift terisi.',
+      message: 'Data tidak lengkap. Pastikan jumlahPemasukkan dan shift terisi.',
     });
   }
 
   try {
-    const parsedUserId = parseInt(userId, 10);
     const parsedJumlah = parseFloat(jumlahPemasukkan);
 
-    if (isNaN(parsedUserId)) {
-      return res.status(400).json({ message: 'userId harus berupa angka.' });
-    }
     if (isNaN(parsedJumlah) || parsedJumlah < 0) {
       return res.status(400).json({
         message: 'jumlahPemasukkan harus berupa angka yang valid.',
       });
     }
 
-    if (parsedUserId !== 2) {
-      return res.status(403).json({
-        message: `Aksi ditolak. Hanya user dengan ID 2 yang diizinkan membuat laporan.`,
+    // Validasi shift
+    const validShifts = ['Pagi', 'Siang', 'Sore', 'Malam'];
+    if (!validShifts.includes(shift)) {
+      return res.status(400).json({
+        message: `Shift harus salah satu dari: ${validShifts.join(', ')}`,
       });
     }
 
-
-    const newPemasukkan = await prisma.LaporanPemasukan.create({
+    const newPemasukkan = await prisma.laporanPemasukan.create({
       data: {
-        userId: parsedUserId,
+        userId: userId,
         jumlahPemasukan: parsedJumlah,
         shift: shift,
         tanggalLaporan: new Date(),
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            nama: true,
+            email: true,
+            role: {
+              select: {
+                nama: true
+              }
+            }
+          }
+        }
+      }
     });
 
     res.status(201).json({
@@ -82,12 +95,6 @@ exports.createPemasukkan = async (req, res) => {
     });
     
   } catch (error) {
-    if (error.code === 'P2003') {
-      return res
-        .status(404)
-        .json({ message: `Gagal: User dengan ID ${userId} tidak ditemukan.` });
-    }
-
     res
       .status(500)
       .json({ message: 'Terjadi kesalahan pada server', error: error.message });
